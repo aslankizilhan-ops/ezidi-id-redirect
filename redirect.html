@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>Ezidi-ID – Passwort zurücksetzen</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script>
+    window.onload = function () {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get("token") || params.get("access_token");
+      const type = params.get("type");
+
+      if (type === "recovery" && token) {
+        const deepLink = `ezidiid://reset-password?token=${token}`;
+        window.location.href = deepLink;
+      }
+    };
+  </script>
+</head>
+<body>
+  <h2>Ezidi-ID</h2>
+  <p>Wir öffnen jetzt die App, um dein Passwort zurückzusetzen…</p>
+  <p>Falls nichts passiert, öffne die Ezidi-ID App manuell.</p>
+</body>
+</html>
