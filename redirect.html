@@ -1,25 +1,38 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
   <meta charset="utf-8" />
-  <title>Ezidi-ID – Passwort zurücksetzen</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script>
-    window.onload = function () {
-      const params = new URLSearchParams(window.location.search);
-      const token = params.get("token") || params.get("access_token");
-      const type = params.get("type");
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ezidi-ID Redirect</title>
 
-      if (type === "recovery" && token) {
-        const deepLink = `ezidiid://reset-password?token=${token}`;
-        window.location.href = deepLink;
-      }
-    };
+  <script>
+    (function () {
+      const params = window.location.search || '';
+      const deepLink = 'ezidiid://reset-password' + params;
+
+      // sofort versuchen
+      window.location.replace(deepLink);
+
+      // Fallback: Button anzeigen
+      setTimeout(() => {
+        document.getElementById('btn').href = deepLink;
+        document.getElementById('hint').style.display = 'block';
+      }, 600);
+    })();
   </script>
+
+  <style>
+    body { font-family: -apple-system, system-ui, sans-serif; padding: 24px; }
+    #hint { display:none; margin-top: 16px; }
+    a { display:inline-block; padding:12px 16px; border-radius:10px; background:#111; color:#fff; text-decoration:none; }
+  </style>
 </head>
 <body>
   <h2>Ezidi-ID</h2>
   <p>Wir öffnen jetzt die App, um dein Passwort zurückzusetzen…</p>
-  <p>Falls nichts passiert, öffne die Ezidi-ID App manuell.</p>
+  <div id="hint">
+    <p>Falls nichts passiert, tippe hier:</p>
+    <a id="btn" href="#">App öffnen</a>
+  </div>
 </body>
 </html>
