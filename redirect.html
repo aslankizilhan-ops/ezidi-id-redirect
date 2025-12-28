@@ -1,68 +1,33 @@
-<!doctype html>
-<html lang="de">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Ezidi-ID Redirect</title>
-  <style>
-    body { font-family: -apple-system, system-ui, sans-serif; padding: 24px; }
-    .box { max-width: 520px; margin: 0 auto; }
-    a.btn {
-      display:inline-block; padding:12px 16px; border-radius:12px;
-      background:#111; color:#fff; text-decoration:none;
-    }
-    code { background:#f2f2f2; padding:2px 6px; border-radius:6px; }
-    .muted { color:#666; font-size: 14px; }
-  </style>
-</head>
-<body>
-  <div class="box">
-    <h2>Ezidi-ID</h2>
-    <p>Wir öffnen jetzt die App, um dein Passwort zurückzusetzen…</p>
+<script>
+  (function () {
+    const qs = window.location.search || '';
+    const hash = window.location.hash || '';
 
-    <p id="status" class="muted">Status: wird vorbereitet…</p>
+    // ✅ Stabiler: path statt host
+    const deepLink = 'ezidiid:///reset-password' + qs + hash;
 
-    <p>
-      <a id="openBtn" class="btn" href="#">App öffnen</a>
-    </p>
+    document.getElementById('debug').textContent =
+      'URL: ' + window.location.href + '\nDeepLink: ' + deepLink;
 
-    <p class="muted">
-      Wenn nichts passiert: Tippe den Button oben. iOS erlaubt das Öffnen von Apps
-      oft nur nach einem Klick.
-    </p>
+    const btn = document.getElementById('openBtn');
+    btn.href = deepLink;
 
-    <details class="muted">
-      <summary>Technische Details</summary>
-      <pre id="debug"></pre>
-    </details>
-  </div>
+    const status = document.getElementById('status');
+    status.textContent = 'Status: bereit. Tippe „App öffnen“.';
 
-  <script>
-    (function () {
-      const qs = window.location.search || '';
-      const hash = window.location.hash || '';
-      // Wichtig: Supabase liefert bei dir "?code=..." (PKCE)
-      const deepLink = 'ezidiid://reset-password' + qs + hash;
+    // ✅ iOS: App öffnen NUR zuverlässig nach User-Klick
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.location.assign(deepLink);
+    });
 
-      document.getElementById('debug').textContent =
-        'URL: ' + window.location.href + '\nDeepLink: ' + deepLink;
+    // Optional: auto attempt (kann iOS blocken)
+    setTimeout(() => {
+      try { window.location.assign(deepLink); } catch (e) {}
+    }, 150);
 
-      const btn = document.getElementById('openBtn');
-      btn.href = deepLink;
-
-      const status = document.getElementById('status');
-      status.textContent = 'Status: versuche App zu öffnen…';
-
-      // Auto-Versuch (kann auf iOS geblockt werden)
-      setTimeout(() => {
-        try { window.location.href = deepLink; } catch (e) {}
-      }, 150);
-
-      // Fallback nach kurzer Zeit
-      setTimeout(() => {
-        status.textContent = 'Status: falls nichts passiert, tippe „App öffnen“.';
-      }, 1200);
-    })();
-  </script>
-</body>
-</html>
+    setTimeout(() => {
+      status.textContent = 'Status: falls nichts passiert, tippe „App öffnen“.';
+    }, 1200);
+  })();
+</script>
