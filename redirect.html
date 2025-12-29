@@ -2,32 +2,31 @@
   (function () {
     const qs = window.location.search || '';
     const hash = window.location.hash || '';
+    const deepLink = 'ezidiid://reset-password' + qs + hash;
 
-    // ✅ Stabiler: path statt host
-    const deepLink = 'ezidiid:///reset-password' + qs + hash;
-
-    document.getElementById('debug').textContent =
-      'URL: ' + window.location.href + '\nDeepLink: ' + deepLink;
-
+    const debugEl = document.getElementById('debug');
     const btn = document.getElementById('openBtn');
+    const status = document.getElementById('status');
+
     btn.href = deepLink;
 
-    const status = document.getElementById('status');
-    status.textContent = 'Status: bereit. Tippe „App öffnen“.';
+    debugEl.textContent =
+      'URL: ' + window.location.href + '\nDeepLink: ' + deepLink;
 
-    // ✅ iOS: App öffnen NUR zuverlässig nach User-Klick
-    btn.addEventListener('click', (e) => {
+    // Wichtig: NICHT automatisch weiterleiten!
+    status.textContent = 'Status: Tippe auf „App öffnen“.';
+
+    btn.addEventListener('click', function (e) {
       e.preventDefault();
-      window.location.assign(deepLink);
+      status.textContent = 'Status: versuche App zu öffnen…';
+      // bewusst via user gesture
+      window.location.href = deepLink;
+
+      // Falls iOS nicht öffnet
+      setTimeout(() => {
+        status.textContent =
+          'Status: Wenn nichts passiert, tippe nochmal. iOS blockt das manchmal.';
+      }, 1200);
     });
-
-    // Optional: auto attempt (kann iOS blocken)
-    setTimeout(() => {
-      try { window.location.assign(deepLink); } catch (e) {}
-    }, 150);
-
-    setTimeout(() => {
-      status.textContent = 'Status: falls nichts passiert, tippe „App öffnen“.';
-    }, 1200);
   })();
 </script>
