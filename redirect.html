@@ -5,32 +5,36 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Ezidi-ID Redirect</title>
   <style>
-    body { font-family: -apple-system, system-ui, sans-serif; padding: 24px; }
+    body { font-family: -apple-system, system-ui, sans-serif; padding: 24px; background:#fff; }
     .box { max-width: 560px; margin: 0 auto; }
-    a.btn { display:inline-block; padding:12px 16px; border-radius:12px; background:#111; color:#fff; text-decoration:none; }
+    a.btn {
+      display:inline-block; padding:12px 16px; border-radius:12px;
+      background:#111; color:#fff; text-decoration:none;
+    }
     code { background:#f2f2f2; padding:2px 6px; border-radius:6px; }
     .muted { color:#666; font-size: 14px; }
-    .warn { color:#b00; font-weight: 600; }
+    .err { color:#b00020; }
+    pre { white-space: pre-wrap; word-break: break-word; }
   </style>
 </head>
 <body>
   <div class="box">
     <h2>Ezidi-ID</h2>
-    <p class="muted">Wenn du diesen Text siehst, wird die Seite korrekt geladen ✅</p>
+    <p>Wir öffnen jetzt die App, um dein Passwort zurückzusetzen…</p>
 
-    <p><b>Code:</b> <code id="code">(kein code)</code></p>
-    <p><b>DeepLink:</b> <code id="deeplink">(wird berechnet)</code></p>
+    <p id="info" class="muted">Code: (wird gelesen…)</p>
+    <p id="deeplinkInfo" class="muted">DeepLink: (wird berechnet…)</p>
+    <p id="status" class="muted">Status: wird vorbereitet…</p>
+    <p id="jsError" class="muted err"></p>
 
-    <p id="status" class="muted">Status: bereit</p>
-
-    <p><a id="openBtn" class="btn" href="#">App öffnen</a></p>
+    <p>
+      <a id="openBtn" class="btn" href="#">App öffnen</a>
+    </p>
 
     <p class="muted">
       iOS öffnet Apps meistens nur nach einem Klick.
       Wenn es nicht klappt, kopiere den DeepLink und öffne ihn in Safari.
     </p>
-
-    <p id="jsinfo" class="warn"></p>
 
     <details class="muted">
       <summary>Technische Details</summary>
@@ -39,33 +43,58 @@
   </div>
 
   <script>
-    // Wenn JS NICHT läuft, bleibt die Seite trotzdem sichtbar.
+    // Zeigt JS-Fehler im UI an (hilft bei iPhone Safari)
+    window.addEventListener('error', (e) => {
+      const el = document.getElementById('jsError');
+      if (el) el.textContent = 'JS Fehler: ' + (e && e.message ? e.message : String(e));
+    });
+
     (function () {
-      try {
-        const url = new URL(window.location.href);
-        const code = url.searchParams.get("code") || "";
-        const deepLink = 'ezidiid://login-callback' + qs + hash;
+      // ✅ WICHTIG: Variablen IM SCOPE definieren
+      const qs = window.location.search || '';
+      const hash = window.location.hash || '';
 
-        document.getElementById("code").textContent = code || "(leer)";
-        document.getElementById("deeplink").textContent = deepLink;
+      // PKCE: Supabase liefert ?code=...
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
 
-        const dbg =
-          "href: " + window.location.href + "\n" +
-          "search: " + window.location.search + "\n" +
-          "hash: " + window.location.hash + "\n";
-        document.getElementById("debug").textContent = dbg;
+      document.getElementById('info').textContent = 'Code: ' + (code ?? '(kein code)');
 
-        const btn = document.getElementById("openBtn");
-        btn.href = deepLink;
+      // ✅ Supabase-kompatibler Callback-Pfad
+      const deepLink = 'ezidiid://login-callback' + qs + hash;
 
-        const status = document.getElementById("status");
-        status.textContent = "Status: tippe auf „App öffnen“.";
+      document.getElementById('deeplinkInfo').textContent = 'DeepLink: ' + deepLink;
 
-        // Kein Auto-Redirect (macht oft nur "weiß", wenn iOS blockt)
-      } catch (e) {
-        document.getElementById("jsinfo").textContent =
-          "JS Fehler: " + e;
+      const debug = [
+        'URL: ' + window.location.href,
+        'search: ' + qs,
+        'hash: ' + hash,
+        'code: ' + (code ?? ''),
+        'DeepLink: ' + deepLink,
+      ].join('\n');
+      document.getElementById('debug').textContent = debug;
+
+      const btn = document.getElementById('openBtn');
+      btn.href = deepLink;
+
+      const status = document.getElementById('status');
+
+      if (!code) {
+        status.textContent = 'Status: bereit (aber kein ?code gefunden – Link ist wahrscheinlich nicht der Supabase-Reset-Link).';
+        return;
       }
+
+      status.textContent = 'Status: tippe auf „App öffnen“.';
+
+      // Auto-Versuch (kann iOS blocken)
+      setTimeout(() => {
+        try { window.location.href = deepLink; } catch (_) {}
+      }, 150);
+
+      // UI-Fallback Hinweis
+      setTimeout(() => {
+        status.textContent = 'Status: tippe auf „App öffnen“.';
+      }, 1200);
     })();
   </script>
 </body>
