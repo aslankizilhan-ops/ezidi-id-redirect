@@ -44,7 +44,7 @@
       try {
         const url = new URL(window.location.href);
         const code = url.searchParams.get("code") || "";
-        const deepLink = "ezidiid://reset-password?code=" + encodeURIComponent(code);
+        const deepLink = 'ezidiid://login-callback' + qs + hash;
 
         document.getElementById("code").textContent = code || "(leer)";
         document.getElementById("deeplink").textContent = deepLink;
