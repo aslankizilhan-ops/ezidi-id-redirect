@@ -1,32 +1,72 @@
-<script>
-  (function () {
-    const qs = window.location.search || '';
-    const hash = window.location.hash || '';
-    const deepLink = 'ezidiid://reset-password' + qs + hash;
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ezidi-ID Redirect</title>
+  <style>
+    body { font-family: -apple-system, system-ui, sans-serif; padding: 24px; }
+    .box { max-width: 560px; margin: 0 auto; }
+    a.btn { display:inline-block; padding:12px 16px; border-radius:12px; background:#111; color:#fff; text-decoration:none; }
+    code { background:#f2f2f2; padding:2px 6px; border-radius:6px; }
+    .muted { color:#666; font-size: 14px; }
+    .warn { color:#b00; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Ezidi-ID</h2>
+    <p class="muted">Wenn du diesen Text siehst, wird die Seite korrekt geladen ✅</p>
 
-    const debugEl = document.getElementById('debug');
-    const btn = document.getElementById('openBtn');
-    const status = document.getElementById('status');
+    <p><b>Code:</b> <code id="code">(kein code)</code></p>
+    <p><b>DeepLink:</b> <code id="deeplink">(wird berechnet)</code></p>
 
-    btn.href = deepLink;
+    <p id="status" class="muted">Status: bereit</p>
 
-    debugEl.textContent =
-      'URL: ' + window.location.href + '\nDeepLink: ' + deepLink;
+    <p><a id="openBtn" class="btn" href="#">App öffnen</a></p>
 
-    // Wichtig: NICHT automatisch weiterleiten!
-    status.textContent = 'Status: Tippe auf „App öffnen“.';
+    <p class="muted">
+      iOS öffnet Apps meistens nur nach einem Klick.
+      Wenn es nicht klappt, kopiere den DeepLink und öffne ihn in Safari.
+    </p>
 
-    btn.addEventListener('click', function (e) {
-      e.preventDefault();
-      status.textContent = 'Status: versuche App zu öffnen…';
-      // bewusst via user gesture
-      window.location.href = deepLink;
+    <p id="jsinfo" class="warn"></p>
 
-      // Falls iOS nicht öffnet
-      setTimeout(() => {
-        status.textContent =
-          'Status: Wenn nichts passiert, tippe nochmal. iOS blockt das manchmal.';
-      }, 1200);
-    });
-  })();
-</script>
+    <details class="muted">
+      <summary>Technische Details</summary>
+      <pre id="debug"></pre>
+    </details>
+  </div>
+
+  <script>
+    // Wenn JS NICHT läuft, bleibt die Seite trotzdem sichtbar.
+    (function () {
+      try {
+        const url = new URL(window.location.href);
+        const code = url.searchParams.get("code") || "";
+        const deepLink = "ezidiid://reset-password?code=" + encodeURIComponent(code);
+
+        document.getElementById("code").textContent = code || "(leer)";
+        document.getElementById("deeplink").textContent = deepLink;
+
+        const dbg =
+          "href: " + window.location.href + "\n" +
+          "search: " + window.location.search + "\n" +
+          "hash: " + window.location.hash + "\n";
+        document.getElementById("debug").textContent = dbg;
+
+        const btn = document.getElementById("openBtn");
+        btn.href = deepLink;
+
+        const status = document.getElementById("status");
+        status.textContent = "Status: tippe auf „App öffnen“.";
+
+        // Kein Auto-Redirect (macht oft nur "weiß", wenn iOS blockt)
+      } catch (e) {
+        document.getElementById("jsinfo").textContent =
+          "JS Fehler: " + e;
+      }
+    })();
+  </script>
+</body>
+</html>
